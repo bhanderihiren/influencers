@@ -1,0 +1,27 @@
+# Laravel & PHP files to ignore
+/vendor/
+.env
+.env.*
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+storage/*.key
+
+# Node.js files to ignore
+/node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build-related files to ignore
+/bootstrap/ssr
+/public/build
+/public/hot
+/public/storage
+
+# IDE & Editor files to ignore
+/.idea
+/.vscode
+/.fleet
+
+# Authentication & Config files
+auth.json
