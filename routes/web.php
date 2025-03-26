@@ -9,7 +9,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\InfluencerController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\CategorController;
+use App\Http\Controllers\CategoryController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -78,6 +79,7 @@ Route::middleware(['auth', 'role:influencer'])->group(function () {
 
     Route::post('/influencers/store', [InfluencerController::class, 'store'])->name('influencers.store');
     Route::get('/influencer/edit-detail', [InfluencerController::class, 'index'])->name('influencer.edi-detail');
+    Route::get('/influencer/my-reviews',[InfluencerController::class, 'myReviews'])->name('influencer.my-reviews');
 });
 
 
@@ -94,7 +96,7 @@ Route::get('admin/users', [UserController::class, 'index'])->name('admin-user');
 Route::get('admin/user/delete/{id}', [UserController::class, 'deleteUser'])->name('admin-delete-user');
 
 
-Route::get('admin/categories', [CategorController::class, 'index'])->name('category');
-Route::post('admin/categoy/new-skill', [CategorController::class, 'newCategoyCreate'])->name('admin-new-category');
-Route::get('admin/categoy/edit/{id}', [CategorController::class, 'edit'])->name('admin-categoy-edit');
-Route::get('admin/categoy/delete/{id}', [CategorController::class, 'Delete'])->name('admin-categoy-delete');
+Route::get('admin/categories', [CategoryController::class, 'index'])->name('category');
+Route::post('admin/categoy/new-skill', [CategoryController::class, 'newCategoyCreate'])->name('admin-new-category');
+Route::get('admin/categoy/edit/{id}', [CategoryController::class, 'edit'])->name('admin-categoy-edit');
+Route::get('admin/categoy/delete/{id}', [CategoryController::class, 'Delete'])->name('admin-categoy-delete');

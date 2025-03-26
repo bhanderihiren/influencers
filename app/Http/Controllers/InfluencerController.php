@@ -6,6 +6,7 @@ use App\Models\Influencer;
 use Illuminate\Support\Facades\DB;
 use App\Models\SocialMediaPlatform;
 use App\Models\InfluencerCategory;
+use App\Models\Review;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -109,6 +110,25 @@ class InfluencerController extends Controller
         }
 
         return redirect()->route('influencer.edi-detail')->with('success', 'Influencer added successfully!');
+    }
+
+    public function myReviews(Request $request){
+        $user_id = auth()->id();
+        $reviews = Review::where('user_id', $user_id)
+                    ->with('platform') // Load related platforms
+                    ->latest()
+                    ->get()
+                    ->map(function ($review) {
+                        // Extract only platform names as an array
+                        $review->social_media = $review->platform->pluck('platform')->toArray();
+                        unset($review->platform); // Remove the full relation to clean up the response
+                        return $review;
+                    });
+
+        return Inertia::render('Influencer/MyReviews', [
+            'reviews' => $reviews,
+
+        ]);
     }
 
 }

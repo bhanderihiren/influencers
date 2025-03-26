@@ -49,9 +49,20 @@ class ReviewController extends Controller
     public function showReviews()
     {
         $user_id = auth()->id();
-        $reviews = Review::where('customer_id',$user_id)->latest()->get(); // Fetch latest reviews
+        $reviews = Review::where('customer_id', $user_id)
+                    ->with('platform') // Load related platforms
+                    ->latest()
+                    ->get()
+                    ->map(function ($review) {
+                        // Extract only platform names as an array
+                        $review->social_media = $review->platform->pluck('platform')->toArray();
+                        unset($review->platform); // Remove the full relation to clean up the response
+                        return $review;
+                    });
+
         return Inertia::render('Customer/review', [
-            'reviews' => $reviews
+            'reviews' => $reviews,
+
         ]);
     }
     public function edit($id){

@@ -34,4 +34,8 @@ class Review extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function platform()
+    {
+        return $this->hasMany(SocialMediaPlatform::class, 'review_id', 'id');
+    }
 }

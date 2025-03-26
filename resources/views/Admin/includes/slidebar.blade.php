@@ -43,6 +43,12 @@
         </li>
       </ul>
     </li>
+    <li class="nav-item">
+      <a href="{{ route('category') }}" class="nav-link {{ isActiveRoute('category') }}">
+        <i class="nav-icon fas fa-user-slash"></i>
+        <p>Category</p>
+      </a>
+    </li>
   </ul>
    </nav>
 
