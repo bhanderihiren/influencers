@@ -10,6 +10,8 @@ use App\Http\Controllers\InfluencerController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ReviewReportController;
+use App\Models\Review;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,8 +28,24 @@ Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
+         'reviews' => Review::with(['platform', 'user'])
+                ->latest()
+                ->get()
+                ->map(function ($review) {
+                    // Extract platform name and link
+                    $review->social_media = $review->platform->map(function ($platform) {
+                        return [
+                            'platform' => $platform->platform, // e.g., 'tiktok', 'facebook'
+                            'link' => generatePlatformLink($platform->platform, $platform->name) // e.g., 'https://tiktok.com/@user'
+                        ];
+                    })->toArray();
+
+                    // Add verification status if needed
+                    $review->is_verified = optional($review->user)->status;
+
+                    unset($review->platform, $review->user); // Remove unnecessary relations
+                    return $review;
+                }),
     ]);
 });
 
@@ -65,7 +83,7 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
         return Inertia::render('Customer/AddInfluencer');
     })->name('customer.add-influencer');
 
-    Route::post('/reviews', [ReviewController::class, 'store'])->middleware('auth')->name('customer-review');
+    Route::post('/insert-reviews', [ReviewController::class, 'store'])->middleware('auth')->name('customer-review');
     Route::get('/customer/customer-reviews', [ReviewController::class, 'showReviews'])->name('customer.reviews');
     
     Route::get('/customer/reviews/{id}/edit', [ReviewController::class, 'edit'])->name('reviews.edit');
@@ -80,6 +98,12 @@ Route::middleware(['auth', 'role:influencer'])->group(function () {
     Route::post('/influencers/store', [InfluencerController::class, 'store'])->name('influencers.store');
     Route::get('/influencer/edit-detail', [InfluencerController::class, 'index'])->name('influencer.edi-detail');
     Route::get('/influencer/my-reviews',[InfluencerController::class, 'myReviews'])->name('influencer.my-reviews');
+
+    Route::get('/influencer/report-review', function () {
+        return Inertia::render('Influencer/Reportreview');
+    })->name('influencer.report.review');
+
+    Route::post('/influencer/reports', [ReviewReportController::class, 'store'])->name('influencer.reports.store');
 });
 
 
@@ -93,6 +117,7 @@ Route::get('password/change', [ChangePasswordController::class, 'showChangePassw
 Route::post('password/change', [ChangePasswordController::class, 'changePassword'])->name('password.change.submit');
 
 Route::get('admin/users', [UserController::class, 'index'])->name('admin-user');
+Route::get('admin/user/{id}', [UserController::class, 'view'])->name('view-user');
 Route::get('admin/user/delete/{id}', [UserController::class, 'deleteUser'])->name('admin-delete-user');
 
 
@@ -100,3 +125,7 @@ Route::get('admin/categories', [CategoryController::class, 'index'])->name('cate
 Route::post('admin/categoy/new-skill', [CategoryController::class, 'newCategoyCreate'])->name('admin-new-category');
 Route::get('admin/categoy/edit/{id}', [CategoryController::class, 'edit'])->name('admin-categoy-edit');
 Route::get('admin/categoy/delete/{id}', [CategoryController::class, 'Delete'])->name('admin-categoy-delete');
+
+
+Route::get('admin/reported-review', [ReviewReportController::class, 'index'])->name('review.report');
+Route::get('admin/reported-review/status/{id}', [ReviewReportController::class, 'AdminUpdateStatus'])->name('review.status');

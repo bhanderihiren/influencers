@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\SocialMediaPlatform;
 use App\Models\InfluencerCategory;
 use App\Models\Review;
+use App\Models\Report;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -56,6 +57,8 @@ class InfluencerController extends Controller
         $social_media = $request->social_media;
         $errors = [];
         $user_id = auth()->id();
+
+        $review_id = array(); 
         foreach ($social_media as $key => $value) {
             // Check if a record exists with the same platform and name
             $existingRecord = SocialMediaPlatform::where('platform', $key)
@@ -68,6 +71,8 @@ class InfluencerController extends Controller
                     $existingRecord->update([
                         'user_id' => $user_id,
                     ]);
+
+                    $review_id[] = $existingRecord->review_id;
 
                 } elseif ($existingRecord->user_id === $user_id) {
                     // If the record already belongs to the current user, update details
@@ -84,6 +89,15 @@ class InfluencerController extends Controller
                 ]);
             }
         }
+
+        if(!empty($review_id)){
+            foreach($review_id as $key => $id){
+                $review = Review::find($id);
+                $review->user_id = $user_id;
+                $review->save();
+            }
+        }
+
 
         $categories = $request->categories;
         $existingCategories = InfluencerCategory::where('user_id', $user_id)->pluck('category_id')->toArray();
@@ -112,23 +126,51 @@ class InfluencerController extends Controller
         return redirect()->route('influencer.edi-detail')->with('success', 'Influencer added successfully!');
     }
 
-    public function myReviews(Request $request){
+    public function myReviews(Request $request)
+    {
         $user_id = auth()->id();
+        
         $reviews = Review::where('user_id', $user_id)
-                    ->with('platform') // Load related platforms
-                    ->latest()
-                    ->get()
-                    ->map(function ($review) {
-                        // Extract only platform names as an array
-                        $review->social_media = $review->platform->pluck('platform')->toArray();
-                        unset($review->platform); // Remove the full relation to clean up the response
-                        return $review;
-                    });
+                ->with(['platform', 'report']) // Changed from 'reports' to 'report'
+                ->latest()
+                ->get()
+                ->map(function ($review) {
+                    // Extract platform name and link
+                    $review->social_media = $review->platform ? $review->platform->map(function ($platform) {
+                        return [
+                            'platform' => $platform->platform,
+                            'link' => generatePlatformLink($platform->platform, $platform->name)
+                        ];
+                    })->toArray() : [];
+
+                    // Add report details if report exists
+                    if ($review->report) {
+                        $review->report_details = [
+                            'status' => $this->getStatusText($review->report->status),
+                            'reason' => $review->report->reason,
+                            'created_at' => $review->report->created_at->format('M d, Y'),
+                            'updated_at' => $review->report->updated_at ? $review->report->updated_at->format('M d, Y') : null
+                        ];
+                    }
+
+                    unset($review->platform, $review->report); // Remove unnecessary relations
+                    return $review;
+                });
 
         return Inertia::render('Influencer/MyReviews', [
             'reviews' => $reviews,
-
         ]);
     }
+
+    protected function getStatusText($statusCode)
+    {
+        return match($statusCode) {
+            Report::STATUS_PENDING => 'pending',
+            Report::STATUS_APPROVED => 'approved',
+            Report::STATUS_REJECTED => 'rejected',
+            default => 'unknown'
+        };
+    }
+
 
 }

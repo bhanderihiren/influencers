@@ -49,6 +49,12 @@
         <p>Category</p>
       </a>
     </li>
+    <li class="nav-item">
+      <a href="{{ route('review.report') }}" class="nav-link {{ isActiveRoute('review.report') }}">
+        <i class="nav-icon fas fa-user-slash"></i>
+        <p>Report Issue</p>
+      </a>
+    </li>
   </ul>
    </nav>
 

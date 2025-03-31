@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\UrlGenerator;
 use App\Models\User;
+use App\Models\Review;
 use DataTables;
 use Illuminate\Validation\Rule;
 
@@ -58,9 +59,9 @@ class UserController extends Controller
                     })
                     ->addColumn('view_details', function ($row) {
                     // Eye icon for viewing user details
-                    $viewButton = "<button class='view-details btn btn-info btn-sm' data-id='" . $row->id . "'>
+                    $viewButton = "<a href='".route('view-user', $row->id)."' class='view-details btn btn-info btn-sm' data-id='" . $row->id . "'>
                                        <i class='fas fa-eye'></i> View
-                                   </button>";
+                                   </a>";
                 
                     // Edit button
                     $editButton = "<button class='edit-details btn btn-warning btn-sm' data-id='" . $row->id . "'>
@@ -94,6 +95,30 @@ class UserController extends Controller
         $user->delete();
     
         return response()->json(['status' => 'success', 'message' => 'User deleted successfully']);
+    }
+
+    public function view($id) {
+        $user = User::where('id',$id)->first();
+        $user_id = $user->id;
+        $user_role = $user->role; // Ensure your User model has a 'role' attribute
+
+        // Base query
+        $query = Review::with('platform')->latest();
+
+        if ($user_role === "customer") {
+            $query->where('customer_id', $user_id);
+        } else {
+            $query->where('user_id', $user_id);
+        }
+
+        // Retrieve and format the reviews
+        $reviews = $query->get()->map(function ($review) {
+            $review->social_media = $review->platform->pluck('platform')->toArray();
+            unset($review->platform);
+            return $review;
+        });
+
+        return view('admin.user-view', ['reviews' => $reviews]);
     }
 
 }

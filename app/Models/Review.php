@@ -38,4 +38,8 @@ class Review extends Model
     {
         return $this->hasMany(SocialMediaPlatform::class, 'review_id', 'id');
     }
+    public function report()
+    {
+        return $this->hasOne(Report::class, 'review_id', 'id');
+    }
 }
