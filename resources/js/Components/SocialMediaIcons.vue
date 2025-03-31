@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-col items-center p-6 space-y-6 w-full max-w-lg mx-auto">
-    <!-- Button to Show Icons -->
+    <!-- Button to Show Icons (Disabled if Read-Only) -->
     <button 
       @click="toggleIcons" 
-      :disabled="availableIcons.length === 0"
+      :disabled="availableIcons.length === 0 || readOnly"
       class="px-5 py-3 bg-green-600 text-white rounded-xl shadow-lg text-lg flex items-center gap-3 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
     >
       <span class="text-2xl">+</span> Add Social Media
@@ -31,7 +31,7 @@
           <font-awesome-icon :icon="icons[icon]" class="w-7 h-7 text-gray-600" />
           
           <div class="flex-1 space-y-2">
-            <!-- Name Input Field -->
+            <!-- Name Input Field (Read-Only) -->
             <input 
               type="text" 
               :name="`name[${capitalize(icon)}]`"
@@ -39,9 +39,10 @@
               :placeholder="`Enter ${capitalize(icon)} name`" 
               @input="updateField(icon, 'name', values.name)"
               class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :disabled="readOnly"
             />
 
-            <!-- Conditionally Show Link Field -->
+            <!-- Conditionally Show Link Field (Read-Only) -->
             <input 
               v-show="showLinkField"
               type="text" 
@@ -50,11 +51,16 @@
               :placeholder="`Enter ${capitalize(icon)} link`" 
               @input="updateField(icon, 'link', values.link)"
               class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :disabled="readOnly"
             />
           </div>
 
-          <!-- Remove Icon -->
-          <button @click="removeTextField(icon)" class="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+          <!-- Remove Icon Button (Hidden if Read-Only) -->
+          <button 
+            v-if="!readOnly"
+            @click="removeTextField(icon)" 
+            class="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+          >
             <font-awesome-icon :icon="faTrash" class="w-5 h-5" />
           </button>
         </div>
@@ -78,6 +84,10 @@ const props = defineProps({
   existingData: {
     type: Object,
     default: () => ({})
+  },
+  readOnly: {
+    type: Boolean,
+    default: false // Default is editable
   }
 });
 
@@ -116,28 +126,36 @@ onMounted(() => {
 
 // Toggle available icons
 const toggleIcons = () => {
-  showIcons.value = !showIcons.value;
+  if (!props.readOnly) {
+    showIcons.value = !showIcons.value;
+  }
 };
 
-// Add a new platform
+// Add a new platform (Disabled in Read-Only Mode)
 const addTextField = (icon) => {
-  selectedPlatforms.value[icon] = { name: "", link: "" };
-  availableIcons.value = availableIcons.value.filter((i) => i !== icon);
-  showIcons.value = false;
-  emit("update:selected", selectedPlatforms.value);
+  if (!props.readOnly) {
+    selectedPlatforms.value[icon] = { name: "", link: "" };
+    availableIcons.value = availableIcons.value.filter((i) => i !== icon);
+    showIcons.value = false;
+    emit("update:selected", selectedPlatforms.value);
+  }
 };
 
-// Remove a platform
+// Remove a platform (Disabled in Read-Only Mode)
 const removeTextField = (icon) => {
-  delete selectedPlatforms.value[icon];
-  availableIcons.value.push(icon);
-  emit("update:selected", selectedPlatforms.value);
+  if (!props.readOnly) {
+    delete selectedPlatforms.value[icon];
+    availableIcons.value.push(icon);
+    emit("update:selected", selectedPlatforms.value);
+  }
 };
 
-// Update a field (name or link)
+// Update a field (Disabled in Read-Only Mode)
 const updateField = (icon, field, value) => {
-  selectedPlatforms.value[icon][field] = value;
-  emit("update:selected", selectedPlatforms.value);
+  if (!props.readOnly) {
+    selectedPlatforms.value[icon][field] = value;
+    emit("update:selected", selectedPlatforms.value);
+  }
 };
 
 // Capitalize the first letter of a word

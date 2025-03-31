@@ -15,7 +15,7 @@ const isSubmitting = ref(false);
 const errorMessage = ref("");
 const successMessage = ref("");
 
-// Reset form function
+// Reset form function 
 const resetForm = () => {
     selectedSocialMedia.value = {};  // Reset social media selection
     qualityRating.value = 0;         // Reset quality rating
@@ -81,15 +81,15 @@ const submitReview = () => {
                     <div class="mb-6 space-y-5">
                         <div class="flex items-center justify-between">
                             <span class="text-gray-700 dark:text-gray-300 text-sm font-semibold">Quality</span>
-                            <StarRating v-model:rating="qualityRating" />
+                            <StarRating v-model="qualityRating" />
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-gray-700 dark:text-gray-300 text-sm font-semibold">Value for Money</span>
-                            <StarRating v-model:rating="valueRating" />
+                            <StarRating v-model="valueRating" />
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-gray-700 dark:text-gray-300 text-sm font-semibold">Customer Support</span>
-                            <StarRating v-model:rating="supportRating" />
+                            <StarRating v-model="supportRating" />
                         </div>
                     </div>
 

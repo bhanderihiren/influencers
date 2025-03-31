@@ -41,6 +41,12 @@ const showingNavigationDropdown = ref(false);
                                 <NavLink :href="route('influencer.edi-detail')" :active="route().current('influencer.edi-detail')" v-if="$page.props.auth.user.role === 'influencer'">
                                     My Socialmedia Profile
                                 </NavLink>
+                                <NavLink :href="route('influencer.my-reviews')" :active="route().current('influencer.my-reviews')" v-if="$page.props.auth.user.role === 'influencer'">
+                                    My Review
+                                </NavLink>
+                                <NavLink :href="route('influencer.report.review')" :active="route().current('influencer.report.review')" v-if="$page.props.auth.user.role === 'influencer'">
+                                    Report Review
+                                </NavLink>
                             </div>
                         </div>
 

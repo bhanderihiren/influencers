@@ -18,6 +18,14 @@ class ReviewController extends Controller
             'general_review' => 'nullable|string|max:1000',
         ]);
 
+        foreach ($request->social_media as $platform => $data) {
+            if (!$this->validateSocialMediaUsername($platform, $data['name'], $data['link'])) {
+                return back()->withErrors([
+                    'social_media' => "The username '{$data['name']}' doesn't appear to be a valid $platform profile"
+                ])->withInput();
+            }
+        }
+        
         $Review = Review::create([
             'customer_id' => auth()->id(), // Save user ID (if authenticated)
             'performance' => $request->quality_rating,
@@ -28,11 +36,27 @@ class ReviewController extends Controller
 
         if($social_media = $request->social_media){
             foreach ($social_media as $key => $value) {
-                $socialMediaplatform = SocialMediaPlatform::create([
-                    'platform' => $key,
-                    'review_id' => $Review->id, // Save user ID (if authenticated)
-                    'name' => $value['name'],
-                ]);
+
+                $socialMediaplatform = SocialMediaPlatform::where('platform', $key)
+                                        ->where('name', $value['name'])
+                                        ->first();
+
+                if ($socialMediaplatform) {
+                    $user_id = $socialMediaplatform->user_id;
+                    $socialMediaplatform = SocialMediaPlatform::create([
+                        'platform' => $key,
+                        'review_id' => $Review->id,
+                        'name' => $value['name'],
+                        'user_id' => $user_id
+                    ]);
+                } else {
+                    $socialMediaplatform = SocialMediaPlatform::create([
+                        'platform' => $key,
+                        'review_id' => $Review->id,
+                        'name' => $value['name'],
+                    ]);
+                    $user_id = 0;
+                }
 
                 SocialmediaPlatformReview::create([
                     'platfrom_id'   => $socialMediaplatform->id,
@@ -42,6 +66,10 @@ class ReviewController extends Controller
             }
         }
 
+        if(!empty($user_id) && $user_id != 0 ){
+           $Review->update(['user_id' => $user_id]);
+        }
+
         return redirect()->route('dashboard')->with([
             'flash' => ['success' => 'Review submitted successfully!']
         ]);
@@ -49,9 +77,29 @@ class ReviewController extends Controller
     public function showReviews()
     {
         $user_id = auth()->id();
-        $reviews = Review::where('customer_id',$user_id)->latest()->get(); // Fetch latest reviews
+        $reviews = Review::where('customer_id', $user_id)
+                    ->with('platform') // Load related platforms
+                    ->latest()
+                    ->get()
+                    ->map(function ($review) {
+                    // Extract platform name and link
+                    $review->social_media = $review->platform->map(function ($platform) {
+                        return [
+                            'platform' => $platform->platform, // e.g., 'tiktok', 'facebook'
+                            'link' => generatePlatformLink($platform->platform, $platform->name) // e.g., 'https://tiktok.com/@user'
+                        ];
+                    })->toArray();
+
+                    // Add verification status if needed
+                    $review->is_verified = optional($review->user)->status;
+
+                    unset($review->platform, $review->user); // Remove unnecessary relations
+                    return $review;
+                    });
+
         return Inertia::render('Customer/review', [
-            'reviews' => $reviews
+            'reviews' => $reviews,
+
         ]);
     }
     public function edit($id){

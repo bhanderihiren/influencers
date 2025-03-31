@@ -22,12 +22,16 @@ const selectedSocialMedia = ref({});
 const isSubmitting = ref(false);
 const errorMessage = ref("");
 const successMessage = ref("");
+const isReadOnly = ref(false);
 
 // Existing social media data to pre-fill the SocialMediaSelector
 const existingSocialMediaData = ref(props.socialMediaplatform || {});
 
 // Prefill form fields when component is mounted
 onMounted(() => {
+  if (props.reviewId) { 
+    isReadOnly.value = true;
+  }
   if (props.reviews) { // Ensure reviews exist
     selectedSocialMedia.value = props.socialMediaplatform || {};
     qualityRating.value = props.reviews.performance || 0;
@@ -112,6 +116,7 @@ const submitReview = () => {
               <SocialMediaSelector 
                 v-model:selected="selectedSocialMedia" 
                 :existingData="existingSocialMediaData" 
+                :readOnly="isReadOnly"
               />
             </div>
           </div>
