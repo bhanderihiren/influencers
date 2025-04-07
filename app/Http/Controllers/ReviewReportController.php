@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Report;
+use App\Models\Review;
 use Illuminate\Support\Facades\Auth;
 use DataTables;
 class ReviewReportController extends Controller
@@ -81,7 +82,7 @@ class ReviewReportController extends Controller
         return back()->with('success', 'Report status updated successfully');
     }
 
-    public function AdminUpdateStatus($id,Request $request)
+    /*public function AdminUpdateStatus(Request $request)
     {
 
 
@@ -90,5 +91,63 @@ class ReviewReportController extends Controller
         $report->save();
 
         //return back()->with('success', 'Report status updated successfully');
+    }*/
+
+    public function reviews(Request $request)
+    {
+        $reviews = Review::with(['platform', 'user'])
+                ->latest()
+                ->get()
+                ->map(function ($review) {
+                    // Extract platform name and link
+                    $review->social_media = $review->platform->map(function ($platform) {
+                        return [
+                            'platform' => $platform->platform, // e.g., 'tiktok', 'facebook'
+                            'link' => generatePlatformLink($platform->platform, $platform->name) // e.g., 'https://tiktok.com/@user'
+                        ];
+                    })->toArray();
+
+                    // Add verification status if needed
+                    $review->is_verified = optional($review->user)->status;
+
+                    unset($review->platform, $review->user); // Remove unnecessary relations
+                    return $review;
+                });
+
+        ///echo "<pre>"; print_r( $reviews); exit();
+        return view('admin.reviews', ['reviews' => $reviews]);
+    }
+
+    public function approve($id, Request $request)
+    {
+        $review = Review::findOrFail($id);
+        
+        if ($request->input('is_reverting')) {
+            $review->update(['status' => '1']);
+        } else {
+            $review->update(['status' => '1', 'rejection_reason' => null]);
+        }
+        
+        return response()->json(['success' => true]);
+    }
+
+    public function reject($id, Request $request)
+    {
+        $validated = $request->validate([
+            'reason' => 'nullable|string|max:255'
+        ]);
+        
+        $review = Review::findOrFail($id);
+        
+        if ($request->input('is_reverting')) {
+            $review->update(['status' => '0']);
+        } else {
+            $review->update([
+                'status' => '0',
+                'rejection_reason' => $validated['reason'] ?? null
+            ]);
+        }
+        
+        return response()->json(['success' => true]);
     }
 }

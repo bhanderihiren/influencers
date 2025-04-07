@@ -23,6 +23,8 @@
         "@fortawesome/free-solid-svg-icons": "^6.7.2",
         "@fortawesome/vue-fontawesome": "^3.0.8",
         "@vitejs/plugin-vue": "^4.6.2",
+        "lodash-es": "^4.17.21",
+        "lucide-vue-next": "^0.487.0",
         "vue-router": "^4.5.0"
     }
 }

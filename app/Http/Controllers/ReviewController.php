@@ -2,10 +2,13 @@
 
 use Illuminate\Http\Request;
 use App\Models\Review;
+use App\Models\User;
 use App\Models\SocialMediaPlatform;
 use App\Models\SocialmediaPlatformReview;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Route;
+
 class ReviewController extends Controller
 {
     public function store(Request $request)
@@ -102,6 +105,69 @@ class ReviewController extends Controller
 
         ]);
     }
+
+    public function allInfluencer()
+    {
+        $platforms = SocialMediaPlatform::select('platform')
+            ->distinct()
+            ->orderBy('platform')
+            ->pluck('platform');
+
+        $influencers = User::with(['socialmedia'])
+            ->where('role', 'influencer')
+            ->get()
+            ->map(function ($user) {
+                $uniquePlatforms = $user->socialmedia
+                    ->unique('platform')
+                    ->map(function ($account) {
+                        return [
+                            'platform' => $account->platform,
+                            'icon' => $this->getPlatformIcon($account->platform),
+                            'username' => $account->name,
+                            'link' => generatePlatformLink($account->platform, $account->name),
+                            'followers' => $account->follower_count ? number_format($account->follower_count) : null,
+                            'verified' => $account->status
+                        ];
+                    })
+                    ->sortByDesc('followers')
+                    ->values();
+
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'avatar' => $user->avatar ?? '/default-avatar.png',
+                    'is_verified' => $user->status,
+                    'bio' => $user->bio,
+                    'platforms' => $uniquePlatforms,
+                    'primary_platform' => $uniquePlatforms->first()['platform'] ?? null,
+                    'total_followers' => $user->socialmedia->sum('follower_count')
+                ];
+            })
+            ->sortByDesc('total_followers');
+
+        return Inertia::render('All-Influencer', [
+            'influencers' => $influencers,
+            'platforms' => $platforms,
+            'canLogin' => Route::has('login'),
+            'canRegister' => Route::has('register'),
+        ]);
+    }
+
+    private function getPlatformIcon($platform)
+    {
+        $icons = [
+            'instagram' => 'fa-instagram',
+            'tiktok' => 'fa-tiktok',
+            'youtube' => 'fa-youtube',
+            'facebook' => 'fa-facebook-f',
+            'twitter' => 'fa-twitter',
+            'linkedin' => 'fa-linkedin-in'
+        ];
+
+        return $icons[strtolower($platform)] ?? 'fa-share-nodes';
+    }   
+
+
     public function edit($id){
        $reviews             = Review::where('id',$id)->first();
        $socialMediaplatform = SocialMediaPlatform::where('review_id', $id)

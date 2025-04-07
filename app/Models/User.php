@@ -43,4 +43,13 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function reviews()
+    {
+        return $this->hasMany(\App\Models\Review::class, 'user_id');
+    }
+    public function socialmedia()
+    {
+        return $this->hasMany(\App\Models\SocialMediaPlatform::class, 'user_id');
+    }
 }

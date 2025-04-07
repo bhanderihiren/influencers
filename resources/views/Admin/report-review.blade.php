@@ -9,7 +9,6 @@
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">categories List</h3>
-              <button type="button" data-toggle="modal" id="new_user" class="right" style="float: right;">Create New Category</button>
             </div>
             <!-- /.card-header -->
             <div class="card-body">
