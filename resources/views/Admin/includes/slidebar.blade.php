@@ -55,6 +55,12 @@
         <p>Report Issue</p>
       </a>
     </li>
+    <li class="nav-item">
+      <a href="{{ route('admin.reviews') }}" class="nav-link {{ isActiveRoute('admin.reviews') }}">
+        <i class="nav-icon fas fa-user-slash"></i>
+        <p>Reviews</p>
+      </a>
+    </li>
   </ul>
    </nav>
 

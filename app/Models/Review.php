@@ -18,6 +18,8 @@ class Review extends Model
         'lead',
         'overall_review',
         'review',
+        'reason',
+        'status'
     ];
 
     public $timestamps = true;

@@ -6,6 +6,7 @@
   <title>Skill India Challenge | Dashboard</title>
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="{{ assets('libraries/fontawesome-free/css/all.min.css'); }}">
   <!-- Ionicons -->
@@ -49,6 +50,7 @@
   <!-- /.content-wrapper -->
   @include('admin.includes.footer')
 </div>
+
 <!-- ./wrapper -->
 
 <!-- jQuery -->
@@ -71,5 +73,29 @@
 @stack('js')
   
 @stack('jsfun')
+
+<!-- Modal Structure -->
+    <div class="modal fade" id="reviewModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Review Details</h5>
+                    <button type="button" class="close" id="closeModal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                
+                <div class="modal-body" id="modalContent">
+                    <!-- Dynamic content will be inserted here -->
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="approveReview">Approve</button>
+                    <button type="button" class="btn btn-danger" id="rejectReview">Reject</button>
+                    <button type="button" class="btn btn-secondary" id="cancelAction">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

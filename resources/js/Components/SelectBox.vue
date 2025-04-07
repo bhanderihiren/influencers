@@ -1,9 +1,13 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 
-defineProps({
-    modelValue: String, // The selected value
-    options: Array, // The list of available options
+const props = defineProps({
+    modelValue: String,
+    options: Array,
+    placeholder: {
+        type: String,
+        default: 'Select an option',
+    },
 });
 
 defineEmits(['update:modelValue']);
@@ -11,12 +15,14 @@ defineEmits(['update:modelValue']);
 const select = ref(null);
 
 onMounted(() => {
-    if (select.value.hasAttribute('autofocus')) {
+    if (select.value?.hasAttribute('autofocus')) {
         select.value.focus();
     }
 });
 
-defineExpose({ focus: () => select.value.focus() });
+defineExpose({
+    focus: () => select.value?.focus(),
+});
 </script>
 
 <template>
@@ -28,9 +34,13 @@ defineExpose({ focus: () => select.value.focus() });
         :value="modelValue"
         @change="$emit('update:modelValue', $event.target.value)"
     >
-        <option value="" disabled>Select a role</option>
-        <option v-for="option in options" :key="option" :value="option">
-            {{ option }}
+        <option value="" disabled>{{ placeholder }}</option>
+        <option
+            v-for="option in options"
+            :key="typeof option === 'object' ? option.value : option"
+            :value="typeof option === 'object' ? option.value : option"
+        >
+            {{ typeof option === 'object' ? option.text : option }}
         </option>
     </select>
 </template>

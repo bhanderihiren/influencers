@@ -47,7 +47,7 @@ Route::get('/', function () {
                     return $review;
                 }),
     ]);
-});
+})->name('home');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
@@ -72,6 +72,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 
 Route::get('/customer-reviews', [ReviewController::class, 'showReviews'])->name('customer.reviews');
+Route::get('/all-influencer', [ReviewController::class, 'allInfluencer'])->name('all-influencer');
 
 
 Route::middleware(['auth', 'role:customer'])->group(function () {
@@ -128,4 +129,10 @@ Route::get('admin/categoy/delete/{id}', [CategoryController::class, 'Delete'])->
 
 
 Route::get('admin/reported-review', [ReviewReportController::class, 'index'])->name('review.report');
-Route::get('admin/reported-review/status/{id}', [ReviewReportController::class, 'AdminUpdateStatus'])->name('review.status');
+//Route::get('admin/reported-review/status/{id}', [ReviewReportController::class, 'AdminUpdateStatus'])->name('review.status');
+
+Route::get('admin/reviews', [ReviewReportController::class, 'reviews'])->name('admin.reviews');
+
+Route::post('/admin/reviews/{id}/approve', [ReviewReportController::class, 'approve']);
+Route::post('/admin/reviews/{id}/reject', [ReviewReportController::class, 'reject']);
+
